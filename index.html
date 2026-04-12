@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SouthLounge</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            cursor: default;
+        }
+
+        .noise {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0.03;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* HERO */
+        .hero {
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .hero h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(3rem, 10vw, 8rem);
+            letter-spacing: 0.3em;
+            color: #fff;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .hero h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #fff, transparent);
+        }
+
+        .hero .subtitle {
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            color: #666;
+            letter-spacing: 0.15em;
+            font-weight: 300;
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 3rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: #333;
+            letter-spacing: 0.3em;
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* MANIFESTO */
+        .manifesto {
+            flex-direction: column;
+            padding: 4rem 2rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .manifesto p {
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            line-height: 2;
+            color: #999;
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .manifesto p strong {
+            color: #fff;
+            font-weight: 700;
+        }
+
+        .manifesto .quote {
+            border-left: 1px solid #333;
+            padding-left: 2rem;
+            margin: 3rem 0;
+            font-style: italic;
+            color: #555;
+            font-size: 1.1rem;
+        }
+
+        .manifesto .quote .attr {
+            display: block;
+            margin-top: 1rem;
+            font-style: normal;
+            color: #333;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+        }
+
+        /* PROJECTS */
+        .projects {
+            flex-direction: column;
+            padding: 4rem 2rem;
+        }
+
+        .projects h2 {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.4em;
+            color: #333;
+            text-transform: uppercase;
+            margin-bottom: 4rem;
+        }
+
+        .project-card {
+            border: 1px solid #1a1a1a;
+            padding: 3rem;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            transition: border-color 0.5s ease;
+        }
+
+        .project-card:hover {
+            border-color: #333;
+        }
+
+        .project-card .label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.4em;
+            color: #333;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+        }
+
+        .project-card h3 {
+            font-family: 'Space Mono', monospace;
+            font-size: 2.5rem;
+            color: #fff;
+            margin-bottom: 1rem;
+        }
+
+        .project-card p {
+            color: #555;
+            font-weight: 300;
+            line-height: 1.8;
+            font-size: 0.95rem;
+        }
+
+        .project-card a {
+            display: inline-block;
+            margin-top: 2rem;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            color: #444;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color 0.3s ease;
+        }
+
+        .project-card a:hover {
+            color: #fff;
+        }
+
+        /* FOOTER */
+        .footer {
+            min-height: 40vh;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .footer p {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: #222;
+            letter-spacing: 0.2em;
+        }
+
+        .footer .big {
+            font-size: clamp(1.5rem, 5vw, 3rem);
+            color: #1a1a1a;
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            letter-spacing: 0.2em;
+        }
+
+        /* GLITCH on hover */
+        .hero h1:hover {
+            animation: glitch 0.3s ease;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(2px, -2px); }
+            60% { transform: translate(-1px, -1px); }
+            80% { transform: translate(1px, 1px); }
+            100% { transform: translate(0); }
+        }
+
+        /* fade in */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<section class="hero">
+    <h1>SouthLounge</h1>
+    <p class="subtitle">you're not supposed to be here.</p>
+    <div class="scroll-hint">SCROLL IF YOU DARE</div>
+</section>
+
+<section class="manifesto">
+    <p class="fade-in">
+        We don't explain what we do. <strong>If you get it, you get it.</strong>
+        If you don't, you will — in about ten years.
+        By then we'll be somewhere else entirely.
+    </p>
+    <p class="fade-in">
+        People have tried to describe SouthLounge.
+        Very smart people. Tremendous people.
+        They couldn't. Not because they're stupid — they're not —
+        but because what happens here <strong>doesn't fit in your little categories.</strong>
+    </p>
+    <div class="quote fade-in">
+        "What is SouthLounge?"
+        <span class="attr">— Everyone, constantly</span>
+    </div>
+    <div class="quote fade-in">
+        "You wouldn't understand."
+        <span class="attr">— Us</span>
+    </div>
+    <p class="fade-in">
+        SouthLounge is reserved for people who are smart in a very unrecognized way.
+        Only a decade later do people realize they got blown away.
+        <strong>Nobody understands how amazing we are. Everybody says so.</strong>
+        Even the radical left lunatics.
+    </p>
+</section>
+
+<section class="projects">
+    <h2 class="fade-in">Movements, not projects</h2>
+    <div class="project-card fade-in">
+        <div class="label">001</div>
+        <h3>Uno</h3>
+        <p>The first one. There will be others. You'll know when you're ready.</p>
+        <a href="https://github.com/SouthLounge/Uno">Enter &rarr;</a>
+    </div>
+</section>
+
+<section class="footer">
+    <p>YOU FOUND THE BOTTOM. THERE'S NOTHING HERE.</p>
+    <div class="big">GO BACK UP.</div>
+    <p>OR DON'T. WE DON'T CARE.</p>
+</section>
+
+<script>
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('visible');
+            }
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+
+</body>
+</html>
