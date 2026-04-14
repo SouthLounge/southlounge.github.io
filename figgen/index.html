@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FigGen // SouthLounge 002</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;700&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background: #0a0a0a;
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .noise {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            opacity: 0.03;
+            z-index: 1000;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* LAYOUT */
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 3rem 2rem 6rem;
+        }
+
+        /* HEADER */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 4rem;
+            opacity: 0;
+            animation: fadeUp 0.8s ease forwards;
+        }
+
+        .header-label {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.4em;
+            color: #333;
+            text-transform: uppercase;
+        }
+
+        .header-back {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.3em;
+            color: #333;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color 0.3s ease;
+        }
+
+        .header-back:hover { color: #fff; }
+
+        /* TITLE */
+        .title-block {
+            margin-bottom: 4rem;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 0.1s forwards;
+        }
+
+        .title-block h1 {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(3rem, 10vw, 6rem);
+            color: #fff;
+            letter-spacing: 0.1em;
+            line-height: 1;
+            margin-bottom: 1rem;
+        }
+
+        .title-block h1:hover {
+            animation: glitch 0.3s ease;
+        }
+
+        .title-block .subtitle {
+            font-size: 1rem;
+            color: #444;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(2px, -2px); }
+            60% { transform: translate(-1px, -1px); }
+            80% { transform: translate(1px, 1px); }
+            100% { transform: translate(0); }
+        }
+
+        /* FORM */
+        .form-section {
+            margin-bottom: 3rem;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 0.2s forwards;
+        }
+
+        .input-group {
+            margin-bottom: 2rem;
+        }
+
+        .input-group label {
+            display: block;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.3em;
+            color: #444;
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+        }
+
+        .url-input {
+            width: 100%;
+            background: #111;
+            border: 1px solid #1a1a1a;
+            color: #e0e0e0;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.9rem;
+            padding: 1rem 1.25rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .url-input:focus {
+            border-color: #333;
+        }
+
+        .url-input::placeholder {
+            color: #2a2a2a;
+        }
+
+        /* STYLE CARDS */
+        .style-cards {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .style-card {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            padding: 1.25rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .style-card:hover {
+            border-color: #333;
+        }
+
+        .style-card.active {
+            border-color: #555;
+            background: #151515;
+        }
+
+        .style-card .style-name {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .style-card.active .style-name {
+            color: #fff;
+        }
+
+        .style-card .style-preview {
+            font-size: 0.65rem;
+            color: #333;
+            letter-spacing: 0.1em;
+        }
+
+        /* OPTIONS */
+        .options-row {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border: 1px solid #333;
+            background: #111;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .checkbox-group input[type="checkbox"]:checked {
+            border-color: #666;
+        }
+
+        .checkbox-group input[type="checkbox"]:checked::after {
+            content: '';
+            position: absolute;
+            top: 2px; left: 2px;
+            width: 8px; height: 8px;
+            background: #888;
+        }
+
+        .checkbox-group span {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.15em;
+            color: #555;
+            text-transform: uppercase;
+        }
+
+        /* GENERATE BUTTON */
+        .generate-btn {
+            background: transparent;
+            border: 1px solid #2a2a2a;
+            color: #555;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            padding: 1.1rem 3rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .generate-btn:hover {
+            border-color: #555;
+            color: #fff;
+        }
+
+        .generate-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.3;
+        }
+
+        .generate-btn:disabled:hover {
+            border-color: #2a2a2a;
+            color: #555;
+        }
+
+        /* LOADING STATE */
+        .loading-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.8rem;
+            letter-spacing: 0.4em;
+            color: #444;
+            text-align: center;
+            padding: 4rem 0;
+            animation: pulse 2s ease-in-out infinite;
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* ERROR STATE */
+        .error-text {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.75rem;
+            letter-spacing: 0.2em;
+            color: #662222;
+            text-align: center;
+            padding: 2rem 0;
+            display: none;
+        }
+
+        /* FIGURE VIEWPORT */
+        .viewport-section {
+            margin-bottom: 2rem;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 0.3s forwards;
+        }
+
+        .figure-viewport {
+            border: 1px solid #1a1a1a;
+            min-height: 400px;
+            position: relative;
+            background: #0d0d0d;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .figure-viewport .placeholder {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.3em;
+            color: #1a1a1a;
+            text-transform: uppercase;
+        }
+
+        .figure-viewport svg {
+            display: block;
+            max-width: 100%;
+        }
+
+        /* DOWNLOAD BAR */
+        .download-bar {
+            display: none;
+            gap: 0.75rem;
+            margin-top: 1rem;
+            opacity: 0;
+            animation: fadeUp 0.5s ease forwards;
+        }
+
+        .download-bar.visible {
+            display: flex;
+        }
+
+        .download-btn {
+            background: transparent;
+            border: 1px solid #1a1a1a;
+            color: #444;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.65rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .download-btn:hover {
+            border-color: #444;
+            color: #fff;
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 600px) {
+            .style-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .options-row {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="noise"></div>
+
+<div class="container">
+    <div class="header">
+        <span class="header-label">SouthLounge // 002</span>
+        <a href="/" class="header-back">&larr; Back</a>
+    </div>
+
+    <div class="title-block">
+        <h1>FigGen</h1>
+        <p class="subtitle">paste a paper. get a figure.</p>
+    </div>
+
+    <div class="form-section">
+        <div class="input-group">
+            <label>arXiv URL</label>
+            <input type="text" class="url-input" id="arxivUrl" placeholder="https://arxiv.org/abs/1906.07769" autocomplete="off" spellcheck="false">
+        </div>
+
+        <div class="input-group">
+            <label>Style</label>
+            <div class="style-cards" id="styleCards">
+                <div class="style-card active" data-style="icml">
+                    <div class="style-name">ICML</div>
+                    <div class="style-preview">serif / B&W</div>
+                </div>
+                <div class="style-card" data-style="neurips">
+                    <div class="style-name">NeurIPS</div>
+                    <div class="style-preview">serif / gray</div>
+                </div>
+                <div class="style-card" data-style="nature">
+                    <div class="style-name">Nature</div>
+                    <div class="style-preview">sans / blue</div>
+                </div>
+                <div class="style-card" data-style="dark">
+                    <div class="style-name">Dark</div>
+                    <div class="style-preview">mono / lounge</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="options-row">
+            <label class="checkbox-group">
+                <input type="checkbox" id="includeCaption" checked>
+                <span>Caption</span>
+            </label>
+            <label class="checkbox-group">
+                <input type="checkbox" id="includeLegend">
+                <span>Legend</span>
+            </label>
+        </div>
+
+        <button class="generate-btn" id="generateBtn">Generate</button>
+    </div>
+
+    <div class="viewport-section">
+        <div class="figure-viewport" id="figureViewport">
+            <span class="placeholder">AWAITING SIGNAL</span>
+        </div>
+        <div class="loading-text" id="loadingText">THINKING...</div>
+        <div class="error-text" id="errorText"></div>
+        <div class="download-bar" id="downloadBar">
+            <button class="download-btn" id="downloadSvg">Download SVG</button>
+            <button class="download-btn" id="downloadPng">Download PNG</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// FigGen Renderer — JSON Scene Graph → SVG
+// ============================================================
+
+const API_URL = 'https://southlounge-api.vercel.app/api/generate';
+
+// ---- Style Profiles ----
+const STYLES = {
+    icml: {
+        fontFamily: 'Georgia, "Times New Roman", serif',
+        monoFont: '"Courier New", monospace',
+        bg: '#ffffff',
+        nodeFill: '#ffffff',
+        nodeStroke: '#000000',
+        nodeStrokeWidth: 1.5,
+        textColor: '#000000',
+        labelColor: '#555555',
+        arrowColor: '#000000',
+        accentColor: '#000000',
+        containerStroke: '#999999',
+        containerDash: '6,4',
+        opFill: '#ffffff',
+        opStroke: '#000000',
+        fontSize: 13,
+        smallFontSize: 10,
+        labelFontSize: 9,
+    },
+    neurips: {
+        fontFamily: 'Georgia, "Times New Roman", serif',
+        monoFont: '"Courier New", monospace',
+        bg: '#fafafa',
+        nodeFill: '#f5f5f5',
+        nodeStroke: '#aaaaaa',
+        nodeStrokeWidth: 1,
+        textColor: '#333333',
+        labelColor: '#777777',
+        arrowColor: '#666666',
+        accentColor: '#555555',
+        containerStroke: '#cccccc',
+        containerDash: '5,3',
+        opFill: '#f0f0f0',
+        opStroke: '#999999',
+        fontSize: 13,
+        smallFontSize: 10,
+        labelFontSize: 9,
+    },
+    nature: {
+        fontFamily: 'Helvetica, Arial, sans-serif',
+        monoFont: '"SF Mono", "Courier New", monospace',
+        bg: '#ffffff',
+        nodeFill: '#e8f0fe',
+        nodeStroke: '#2962ff',
+        nodeStrokeWidth: 1.5,
+        textColor: '#1a1a2e',
+        labelColor: '#5c6bc0',
+        arrowColor: '#2962ff',
+        accentColor: '#2962ff',
+        containerStroke: '#90a4ae',
+        containerDash: '6,4',
+        opFill: '#e3f2fd',
+        opStroke: '#2962ff',
+        fontSize: 13,
+        smallFontSize: 10,
+        labelFontSize: 9,
+    },
+    dark: {
+        fontFamily: '"Space Mono", monospace',
+        monoFont: '"Space Mono", monospace',
+        bg: '#0a0a0a',
+        nodeFill: '#151515',
+        nodeStroke: '#333333',
+        nodeStrokeWidth: 1,
+        textColor: '#e0e0e0',
+        labelColor: '#666666',
+        arrowColor: '#555555',
+        accentColor: '#888888',
+        containerStroke: '#2a2a2a',
+        containerDash: '5,3',
+        opFill: '#111111',
+        opStroke: '#444444',
+        fontSize: 13,
+        smallFontSize: 10,
+        labelFontSize: 9,
+    }
+};
+
+// ---- SVG Namespace ----
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+function svgEl(tag, attrs = {}) {
+    const el = document.createElementNS(SVG_NS, tag);
+    for (const [k, v] of Object.entries(attrs)) {
+        el.setAttribute(k, v);
+    }
+    return el;
+}
+
+// ---- Primitive Renderers ----
+
+function renderRect(node, style) {
+    const g = svgEl('g');
+    const w = node.width || 120;
+    const h = node.height || 50;
+    const rx = node.rx || 4;
+
+    const rect = svgEl('rect', {
+        x: node.x, y: node.y,
+        width: w, height: h,
+        rx: rx,
+        fill: node.fill || style.nodeFill,
+        stroke: node.stroke || style.nodeStroke,
+        'stroke-width': node.stroke_width || style.nodeStrokeWidth,
+    });
+    g.appendChild(rect);
+
+    // Type label (small, top)
+    if (node.type_label) {
+        const tl = svgEl('text', {
+            x: node.x + w / 2,
+            y: node.y + 15,
+            'text-anchor': 'middle',
+            fill: node.label_color || style.labelColor,
+            'font-family': style.monoFont,
+            'font-size': style.labelFontSize,
+            'letter-spacing': '0.05em',
+        });
+        tl.textContent = node.type_label;
+        g.appendChild(tl);
+    }
+
+    // Main label
+    if (node.label) {
+        const yOffset = node.type_label ? (h / 2 + 5) : (h / 2 + 4);
+        const label = svgEl('text', {
+            x: node.x + w / 2,
+            y: node.y + yOffset,
+            'text-anchor': 'middle',
+            fill: node.text_color || style.textColor,
+            'font-family': style.fontFamily,
+            'font-size': node.font_size || style.fontSize,
+            'font-weight': node.bold ? '700' : '400',
+        });
+        label.textContent = node.label;
+        g.appendChild(label);
+    }
+
+    // Sublabel (small, bottom)
+    if (node.sublabel) {
+        const sl = svgEl('text', {
+            x: node.x + w / 2,
+            y: node.y + h - 8,
+            'text-anchor': 'middle',
+            fill: node.label_color || style.labelColor,
+            'font-family': style.fontFamily,
+            'font-size': style.smallFontSize,
+            'font-style': 'italic',
+        });
+        sl.textContent = node.sublabel;
+        g.appendChild(sl);
+    }
+
+    return g;
+}
+
+function renderTrapezoid(node, style) {
+    const g = svgEl('g');
+    const w = node.width || 120;
+    const h = node.height || 50;
+    const tw = node.top_width || w * 0.6;
+    const offset = (w - tw) / 2;
+
+    // Points: bottom-left, bottom-right, top-right, top-left
+    const points = [
+        `${node.x},${node.y + h}`,
+        `${node.x + w},${node.y + h}`,
+        `${node.x + w - offset},${node.y}`,
+        `${node.x + offset},${node.y}`,
+    ].join(' ');
+
+    // If direction is "up" (wider at top), reverse
+    let finalPoints = points;
+    if (node.direction === 'up') {
+        finalPoints = [
+            `${node.x + offset},${node.y + h}`,
+            `${node.x + w - offset},${node.y + h}`,
+            `${node.x + w},${node.y}`,
+            `${node.x},${node.y}`,
+        ].join(' ');
+    }
+
+    const path = svgEl('polygon', {
+        points: finalPoints,
+        fill: node.fill || style.nodeFill,
+        stroke: node.stroke || style.nodeStroke,
+        'stroke-width': node.stroke_width || style.nodeStrokeWidth,
+    });
+    g.appendChild(path);
+
+    if (node.label) {
+        const label = svgEl('text', {
+            x: node.x + w / 2,
+            y: node.y + h / 2 + 5,
+            'text-anchor': 'middle',
+            fill: node.text_color || style.textColor,
+            'font-family': style.fontFamily,
+            'font-size': node.font_size || style.fontSize,
+        });
+        label.textContent = node.label;
+        g.appendChild(label);
+    }
+
+    return g;
+}
+
+function renderStackedBlock(node, style) {
+    const g = svgEl('g');
+    const w = node.width || 120;
+    const layers = node.layers || [{ label: 'Layer' }];
+    const layerH = node.layer_height || 36;
+    const gap = node.gap || 2;
+    const totalH = layers.length * layerH + (layers.length - 1) * gap;
+
+    // Container stroke if needed
+    if (node.show_border) {
+        const border = svgEl('rect', {
+            x: node.x - 4, y: node.y - 4,
+            width: w + 8, height: totalH + 8,
+            rx: 4,
+            fill: 'none',
+            stroke: node.stroke || style.containerStroke,
+            'stroke-width': 1,
+            'stroke-dasharray': style.containerDash,
+        });
+        g.appendChild(border);
+    }
+
+    layers.forEach((layer, i) => {
+        const ly = node.y + i * (layerH + gap);
+        const rect = svgEl('rect', {
+            x: node.x, y: ly,
+            width: w, height: layerH,
+            rx: 3,
+            fill: layer.fill || node.fill || style.nodeFill,
+            stroke: layer.stroke || node.stroke || style.nodeStroke,
+            'stroke-width': style.nodeStrokeWidth,
+        });
+        g.appendChild(rect);
+
+        if (layer.label) {
+            const label = svgEl('text', {
+                x: node.x + w / 2,
+                y: ly + layerH / 2 + 4,
+                'text-anchor': 'middle',
+                fill: layer.text_color || style.textColor,
+                'font-family': style.fontFamily,
+                'font-size': layer.font_size || style.smallFontSize,
+            });
+            label.textContent = layer.label;
+            g.appendChild(label);
+        }
+    });
+
+    // Block label above or below
+    if (node.label) {
+        const labelY = node.label_position === 'bottom'
+            ? node.y + totalH + 18
+            : node.y - 10;
+        const label = svgEl('text', {
+            x: node.x + w / 2,
+            y: labelY,
+            'text-anchor': 'middle',
+            fill: node.text_color || style.labelColor,
+            'font-family': style.monoFont,
+            'font-size': style.labelFontSize,
+            'letter-spacing': '0.05em',
+        });
+        label.textContent = node.label;
+        g.appendChild(label);
+    }
+
+    return g;
+}
+
+function renderCircleOp(node, style) {
+    const g = svgEl('g');
+    const r = node.r || 16;
+
+    const circle = svgEl('circle', {
+        cx: node.x, cy: node.y,
+        r: r,
+        fill: node.fill || style.opFill,
+        stroke: node.stroke || style.opStroke,
+        'stroke-width': node.stroke_width || style.nodeStrokeWidth,
+    });
+    g.appendChild(circle);
+
+    const symbol = svgEl('text', {
+        x: node.x,
+        y: node.y + 5,
+        'text-anchor': 'middle',
+        fill: node.text_color || style.textColor,
+        'font-family': style.fontFamily,
+        'font-size': node.font_size || 16,
+    });
+    symbol.textContent = node.symbol || '+';
+    g.appendChild(symbol);
+
+    if (node.label) {
+        const label = svgEl('text', {
+            x: node.x,
+            y: node.y + r + 16,
+            'text-anchor': 'middle',
+            fill: style.labelColor,
+            'font-family': style.monoFont,
+            'font-size': style.labelFontSize,
+        });
+        label.textContent = node.label;
+        g.appendChild(label);
+    }
+
+    return g;
+}
+
+function renderArrow(node, style) {
+    const g = svgEl('g');
+    const points = node.points || [];
+    if (points.length < 2) return g;
+
+    // Build marker ID unique to this arrow
+    const markerId = 'arrowhead-' + Math.random().toString(36).slice(2, 8);
+    const defs = svgEl('defs');
+    const marker = svgEl('marker', {
+        id: markerId,
+        markerWidth: '8', markerHeight: '6',
+        refX: '8', refY: '3',
+        orient: 'auto',
+        markerUnits: 'strokeWidth',
+    });
+    const markerPath = svgEl('path', {
+        d: 'M0,0 L8,3 L0,6 Z',
+        fill: node.color || style.arrowColor,
+    });
+    marker.appendChild(markerPath);
+    defs.appendChild(marker);
+    g.appendChild(defs);
+
+    const pointStr = points.map(p => `${p[0]},${p[1]}`).join(' ');
+    const attrs = {
+        points: pointStr,
+        fill: 'none',
+        stroke: node.color || style.arrowColor,
+        'stroke-width': node.stroke_width || 1.5,
+        'marker-end': `url(#${markerId})`,
+    };
+
+    if (node.dashed) {
+        attrs['stroke-dasharray'] = node.dash_pattern || '6,3';
+    }
+
+    const polyline = svgEl('polyline', attrs);
+    g.appendChild(polyline);
+
+    // Inline label on arrow
+    if (node.label) {
+        const mid = points[Math.floor(points.length / 2)];
+        const label = svgEl('text', {
+            x: mid[0] + (node.label_offset_x || 8),
+            y: mid[1] + (node.label_offset_y || -6),
+            fill: style.labelColor,
+            'font-family': style.monoFont,
+            'font-size': style.labelFontSize,
+            'font-style': 'italic',
+        });
+        label.textContent = node.label;
+        g.appendChild(label);
+    }
+
+    return g;
+}
+
+function renderContainer(node, style) {
+    const g = svgEl('g');
+    const w = node.width || 200;
+    const h = node.height || 150;
+
+    const rect = svgEl('rect', {
+        x: node.x, y: node.y,
+        width: w, height: h,
+        rx: node.rx || 0,
+        fill: node.fill || 'none',
+        stroke: node.stroke || style.containerStroke,
+        'stroke-width': node.stroke_width || 1,
+        'stroke-dasharray': node.dash_pattern || style.containerDash,
+    });
+    g.appendChild(rect);
+
+    if (node.label) {
+        const lx = node.label_position === 'center' ? node.x + w / 2 : node.x + 8;
+        const ly = node.label_position === 'center' ? node.y + h / 2 + 4 : node.y - 8;
+        const anchor = node.label_position === 'center' ? 'middle' : 'start';
+        const label = svgEl('text', {
+            x: lx, y: ly,
+            'text-anchor': anchor,
+            fill: node.label_color || style.labelColor,
+            'font-family': style.monoFont,
+            'font-size': style.labelFontSize,
+            'letter-spacing': '0.08em',
+        });
+        label.textContent = node.label;
+        g.appendChild(label);
+    }
+
+    return g;
+}
+
+function renderTextLabel(node, style) {
+    const g = svgEl('g');
+    const text = svgEl('text', {
+        x: node.x, y: node.y,
+        'text-anchor': node.anchor || 'middle',
+        fill: node.color || style.textColor,
+        'font-family': node.mono ? style.monoFont : style.fontFamily,
+        'font-size': node.font_size || style.fontSize,
+        'font-weight': node.bold ? '700' : (node.weight || '400'),
+        'font-style': node.italic ? 'italic' : 'normal',
+    });
+    text.textContent = node.text || node.label || '';
+    g.appendChild(text);
+    return g;
+}
+
+function renderDots(node, style) {
+    const g = svgEl('g');
+    const spacing = node.spacing || 8;
+    const r = node.dot_radius || 2;
+    const direction = node.direction || 'vertical';
+
+    for (let i = 0; i < 3; i++) {
+        const cx = direction === 'horizontal' ? node.x + i * spacing : node.x;
+        const cy = direction === 'vertical' ? node.y + i * spacing : node.y;
+        const dot = svgEl('circle', {
+            cx, cy, r,
+            fill: node.color || style.labelColor,
+        });
+        g.appendChild(dot);
+    }
+
+    return g;
+}
+
+// ---- Main Render Function ----
+
+function renderSceneGraph(sceneGraph, styleName) {
+    const style = STYLES[styleName] || STYLES.icml;
+    const width = sceneGraph.width || 800;
+    const height = sceneGraph.height || 500;
+
+    const svg = svgEl('svg', {
+        xmlns: SVG_NS,
+        width: width,
+        height: height,
+        viewBox: `0 0 ${width} ${height}`,
+    });
+
+    // Background
+    const bg = svgEl('rect', {
+        x: 0, y: 0,
+        width: width, height: height,
+        fill: style.bg,
+    });
+    svg.appendChild(bg);
+
+    // Title
+    if (sceneGraph.title) {
+        const title = svgEl('text', {
+            x: width / 2,
+            y: 30,
+            'text-anchor': 'middle',
+            fill: style.textColor,
+            'font-family': style.fontFamily,
+            'font-size': 16,
+            'font-weight': '700',
+        });
+        title.textContent = sceneGraph.title;
+        svg.appendChild(title);
+    }
+
+    const renderers = {
+        rect: renderRect,
+        trapezoid: renderTrapezoid,
+        stacked_block: renderStackedBlock,
+        circle_op: renderCircleOp,
+        arrow: renderArrow,
+        container: renderContainer,
+        text_label: renderTextLabel,
+        dots: renderDots,
+    };
+
+    // Render nodes — containers first, then others, then arrows on top
+    const nodes = sceneGraph.nodes || [];
+    const containers = nodes.filter(n => n.kind === 'container');
+    const arrows = nodes.filter(n => n.kind === 'arrow');
+    const rest = nodes.filter(n => n.kind !== 'container' && n.kind !== 'arrow');
+
+    const ordered = [...containers, ...rest, ...arrows];
+
+    for (const node of ordered) {
+        const renderer = renderers[node.kind];
+        if (renderer) {
+            svg.appendChild(renderer(node, style));
+        }
+    }
+
+    // Caption
+    if (sceneGraph.caption) {
+        const caption = svgEl('text', {
+            x: width / 2,
+            y: height - 15,
+            'text-anchor': 'middle',
+            fill: style.labelColor,
+            'font-family': style.fontFamily,
+            'font-size': style.smallFontSize,
+            'font-style': 'italic',
+        });
+        caption.textContent = sceneGraph.caption;
+        svg.appendChild(caption);
+    }
+
+    return svg;
+}
+
+// ---- Hardcoded Test Fixture ----
+
+const TEST_FIXTURE = {
+    width: 800,
+    height: 520,
+    title: "Compositional Multi-modal Representation Learning",
+    caption: "Figure 1: Overview of the CMRL architecture with modality-specific encoders and shared quantizer.",
+    nodes: [
+        // Containers
+        { kind: "container", x: 30, y: 50, width: 230, height: 390, label: "Modality Encoders" },
+        { kind: "container", x: 540, y: 50, width: 230, height: 390, label: "Decoders" },
+
+        // Encoder stack
+        { kind: "trapezoid", x: 60, y: 90, width: 170, height: 55, top_width: 100, label: "Image Encoder", fill: null },
+        { kind: "trapezoid", x: 60, y: 170, width: 170, height: 55, top_width: 100, label: "Text Encoder", fill: null },
+        { kind: "trapezoid", x: 60, y: 250, width: 170, height: 55, top_width: 100, label: "Audio Encoder", fill: null },
+        { kind: "dots", x: 145, y: 325, direction: "vertical", spacing: 10 },
+        { kind: "trapezoid", x: 60, y: 360, width: 170, height: 55, top_width: 100, label: "Encoder N", fill: null },
+
+        // Central quantizer block
+        { kind: "stacked_block", x: 330, y: 140, width: 140, layers: [
+            { label: "Codebook" },
+            { label: "Quantizer" },
+            { label: "Projector" },
+        ], label: "Shared VQ Module", label_position: "bottom", show_border: true },
+
+        // Operator
+        { kind: "circle_op", x: 400, y: 100, r: 18, symbol: "\u2295", label: "Compose" },
+
+        // Decoder stack
+        { kind: "trapezoid", x: 570, y: 90, width: 170, height: 55, top_width: 100, direction: "up", label: "Image Decoder" },
+        { kind: "trapezoid", x: 570, y: 170, width: 170, height: 55, top_width: 100, direction: "up", label: "Text Decoder" },
+        { kind: "trapezoid", x: 570, y: 250, width: 170, height: 55, top_width: 100, direction: "up", label: "Audio Decoder" },
+        { kind: "dots", x: 655, y: 325, direction: "vertical", spacing: 10 },
+        { kind: "trapezoid", x: 570, y: 360, width: 170, height: 55, top_width: 100, direction: "up", label: "Decoder N" },
+
+        // Loss labels
+        { kind: "text_label", x: 400, y: 480, text: "L = L_recon + \u03B1 L_commit + \u03B2 L_compose", mono: true, font_size: 12, bold: false, italic: true },
+
+        // Arrows: Encoders → Quantizer
+        { kind: "arrow", points: [[230, 117], [330, 155]], color: null },
+        { kind: "arrow", points: [[230, 197], [330, 175]], color: null },
+        { kind: "arrow", points: [[230, 277], [330, 195]], color: null },
+        { kind: "arrow", points: [[230, 387], [330, 220]], color: null },
+
+        // Arrows: Quantizer → Compose operator
+        { kind: "arrow", points: [[400, 140], [400, 122]], color: null, dashed: true, label: "codes" },
+
+        // Arrows: Quantizer → Decoders
+        { kind: "arrow", points: [[470, 155], [570, 117]], color: null },
+        { kind: "arrow", points: [[470, 175], [570, 197]], color: null },
+        { kind: "arrow", points: [[470, 195], [570, 277]], color: null },
+        { kind: "arrow", points: [[470, 220], [570, 387]], color: null },
+    ]
+};
+
+// ---- UI Logic ----
+
+let currentStyle = 'icml';
+let currentSvg = null;
+
+// Style card selection
+document.getElementById('styleCards').addEventListener('click', (e) => {
+    const card = e.target.closest('.style-card');
+    if (!card) return;
+    document.querySelectorAll('.style-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    currentStyle = card.dataset.style;
+
+    // Re-render if we have a figure
+    if (currentSvg) {
+        const viewport = document.getElementById('figureViewport');
+        const sceneData = viewport._sceneData;
+        if (sceneData) {
+            renderToViewport(sceneData, currentStyle);
+        }
+    }
+});
+
+function renderToViewport(sceneGraph, styleName) {
+    const viewport = document.getElementById('figureViewport');
+    viewport.innerHTML = '';
+    viewport._sceneData = sceneGraph;
+
+    const svg = renderSceneGraph(sceneGraph, styleName);
+    viewport.appendChild(svg);
+    currentSvg = svg;
+
+    document.getElementById('downloadBar').classList.add('visible');
+}
+
+function showLoading() {
+    document.getElementById('loadingText').style.display = 'block';
+    document.getElementById('errorText').style.display = 'none';
+    document.getElementById('figureViewport').innerHTML = '';
+    document.getElementById('downloadBar').classList.remove('visible');
+    currentSvg = null;
+}
+
+function hideLoading() {
+    document.getElementById('loadingText').style.display = 'none';
+}
+
+function showError(msg) {
+    hideLoading();
+    const el = document.getElementById('errorText');
+    el.textContent = msg;
+    el.style.display = 'block';
+}
+
+// Generate button
+document.getElementById('generateBtn').addEventListener('click', async () => {
+    const url = document.getElementById('arxivUrl').value.trim();
+    if (!url) {
+        showError('SIGNAL LOST \u2014 paste an arXiv URL first');
+        return;
+    }
+
+    // Validate arXiv URL
+    const arxivMatch = url.match(/arxiv\.org\/(?:abs|pdf)\/(\d{4}\.\d{4,5})/);
+    if (!arxivMatch) {
+        showError('SIGNAL LOST \u2014 invalid arXiv URL format');
+        return;
+    }
+
+    const btn = document.getElementById('generateBtn');
+    btn.disabled = true;
+    btn.textContent = 'GENERATING...';
+    showLoading();
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                arxiv_url: url,
+                style: currentStyle,
+                include_caption: document.getElementById('includeCaption').checked,
+                include_legend: document.getElementById('includeLegend').checked,
+            }),
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.error || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        hideLoading();
+        renderToViewport(data.scene_graph, currentStyle);
+    } catch (err) {
+        showError('FIGURE FAILED TO MATERIALIZE \u2014 ' + err.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'GENERATE';
+    }
+});
+
+// Download SVG
+document.getElementById('downloadSvg').addEventListener('click', () => {
+    if (!currentSvg) return;
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(currentSvg);
+    const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'figgen-figure.svg';
+    a.click();
+    URL.revokeObjectURL(url);
+});
+
+// Download PNG
+document.getElementById('downloadPng').addEventListener('click', () => {
+    if (!currentSvg) return;
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(currentSvg);
+    const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+
+    const img = new Image();
+    img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const scale = 2; // Retina quality
+        canvas.width = currentSvg.getAttribute('width') * scale;
+        canvas.height = currentSvg.getAttribute('height') * scale;
+        const ctx = canvas.getContext('2d');
+        ctx.scale(scale, scale);
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+
+        canvas.toBlob((blob) => {
+            const pngUrl = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = pngUrl;
+            a.download = 'figgen-figure.png';
+            a.click();
+            URL.revokeObjectURL(pngUrl);
+        }, 'image/png');
+    };
+    img.src = url;
+});
+
+// ---- Auto-render test fixture on load (for development) ----
+// Uncomment the next line to test rendering without the API:
+// renderToViewport(TEST_FIXTURE, currentStyle);
+
+</script>
+</body>
+</html>
