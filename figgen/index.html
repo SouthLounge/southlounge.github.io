@@ -1467,18 +1467,44 @@ function renderSceneGraph(sceneGraph, styleName) {
         svg.appendChild(renderNodesIntoGroup(nodes, style, renderers));
     }
 
-    // Caption
+    // Caption (word-wrapped)
     if (sceneGraph.caption) {
+        const maxCaptionW = width - 80;
+        const capFontSize = parseFloat(style.smallFontSize) || 11;
+        const charWidth = capFontSize * 0.52;
+        const maxCharsPerLine = Math.floor(maxCaptionW / charWidth);
+        const words = sceneGraph.caption.split(' ');
+        const lines = [];
+        let currentLine = '';
+        for (const word of words) {
+            if ((currentLine + ' ' + word).trim().length > maxCharsPerLine && currentLine) {
+                lines.push(currentLine);
+                currentLine = word;
+            } else {
+                currentLine = currentLine ? currentLine + ' ' + word : word;
+            }
+        }
+        if (currentLine) lines.push(currentLine);
+
+        const lineHeight = capFontSize + 4;
+        const captionStartY = height - 12 - (lines.length - 1) * lineHeight;
         const caption = svgEl('text', {
             x: width / 2,
-            y: height - 15,
+            y: captionStartY,
             'text-anchor': 'middle',
             fill: style.labelColor,
             'font-family': style.fontFamily,
             'font-size': style.smallFontSize,
             'font-style': 'italic',
         });
-        caption.textContent = sceneGraph.caption;
+        for (let i = 0; i < lines.length; i++) {
+            const tspan = svgEl('tspan', {
+                x: width / 2,
+                dy: i === 0 ? 0 : lineHeight,
+            });
+            tspan.textContent = lines[i];
+            caption.appendChild(tspan);
+        }
         svg.appendChild(caption);
     }
 
