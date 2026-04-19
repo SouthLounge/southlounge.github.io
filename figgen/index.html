@@ -230,6 +230,66 @@
             text-transform: uppercase;
         }
 
+        /* MODE TOGGLE */
+        .mode-cards {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+
+        .mode-card {
+            background: #111;
+            border: 1px solid #1a1a1a;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .mode-card:hover {
+            border-color: #333;
+        }
+
+        .mode-card.active {
+            border-color: #555;
+            background: #151515;
+        }
+
+        .mode-card .mode-name {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+
+        .mode-card.active .mode-name {
+            color: #fff;
+        }
+
+        .mode-card .mode-desc {
+            font-size: 0.6rem;
+            color: #333;
+            letter-spacing: 0.1em;
+        }
+
+        /* SOURCE INDICATOR */
+        .source-indicator {
+            font-family: 'Space Mono', monospace;
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+            color: #2a2a2a;
+            text-align: right;
+            margin-top: 0.5rem;
+            display: none;
+        }
+
+        .source-indicator.visible {
+            display: block;
+        }
+
         /* GENERATE BUTTON */
         .generate-btn {
             background: transparent;
@@ -417,6 +477,20 @@
             </div>
         </div>
 
+        <div class="input-group">
+            <label>Source</label>
+            <div class="mode-cards" id="modeCards">
+                <div class="mode-card active" data-mode="abstract">
+                    <div class="mode-name">Abstract</div>
+                    <div class="mode-desc">fast / cheaper</div>
+                </div>
+                <div class="mode-card" data-mode="full">
+                    <div class="mode-name">Full Paper</div>
+                    <div class="mode-desc">richer / slower</div>
+                </div>
+            </div>
+        </div>
+
         <div class="options-row">
             <label class="checkbox-group">
                 <input type="checkbox" id="includeCaption" checked>
@@ -441,6 +515,7 @@
             <button class="download-btn" id="downloadSvg">Download SVG</button>
             <button class="download-btn" id="downloadPng">Download PNG</button>
         </div>
+        <div class="source-indicator" id="sourceIndicator"></div>
     </div>
 </div>
 
@@ -450,6 +525,7 @@
 // ============================================================
 
 const API_URL = 'https://southlounge-api.vercel.app/api/generate';
+const API_URL_FULL = 'https://southlounge-api.vercel.app/api/generate-full';
 
 // ---- Style Profiles ----
 const STYLES = {
@@ -1035,7 +1111,17 @@ const TEST_FIXTURE = {
 // ---- UI Logic ----
 
 let currentStyle = 'icml';
+let currentMode = 'abstract';
 let currentSvg = null;
+
+// Mode card selection
+document.getElementById('modeCards').addEventListener('click', (e) => {
+    const card = e.target.closest('.mode-card');
+    if (!card) return;
+    document.querySelectorAll('.mode-card').forEach(c => c.classList.remove('active'));
+    card.classList.add('active');
+    currentMode = card.dataset.mode;
+});
 
 // Style card selection
 document.getElementById('styleCards').addEventListener('click', (e) => {
@@ -1067,11 +1153,14 @@ function renderToViewport(sceneGraph, styleName) {
     document.getElementById('downloadBar').classList.add('visible');
 }
 
-function showLoading() {
-    document.getElementById('loadingText').style.display = 'block';
+function showLoading(mode) {
+    const loadingEl = document.getElementById('loadingText');
+    loadingEl.textContent = mode === 'full' ? 'READING PAPER...' : 'THINKING...';
+    loadingEl.style.display = 'block';
     document.getElementById('errorText').style.display = 'none';
     document.getElementById('figureViewport').innerHTML = '';
     document.getElementById('downloadBar').classList.remove('visible');
+    document.getElementById('sourceIndicator').classList.remove('visible');
     currentSvg = null;
 }
 
@@ -1104,10 +1193,12 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
     const btn = document.getElementById('generateBtn');
     btn.disabled = true;
     btn.textContent = 'GENERATING...';
-    showLoading();
+    showLoading(currentMode);
+
+    const endpoint = currentMode === 'full' ? API_URL_FULL : API_URL;
 
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -1126,6 +1217,13 @@ document.getElementById('generateBtn').addEventListener('click', async () => {
         const data = await response.json();
         hideLoading();
         renderToViewport(data.scene_graph, currentStyle);
+
+        // Show source indicator
+        if (data.source) {
+            const sourceEl = document.getElementById('sourceIndicator');
+            sourceEl.textContent = `generated via ${data.source}`;
+            sourceEl.classList.add('visible');
+        }
     } catch (err) {
         showError('FIGURE FAILED TO MATERIALIZE \u2014 ' + err.message);
     } finally {
