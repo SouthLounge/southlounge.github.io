@@ -410,6 +410,44 @@
             color: #fff;
         }
 
+        .json-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .json-modal.visible {
+            display: flex;
+        }
+        .json-modal-inner {
+            background: #111;
+            border: 1px solid #333;
+            padding: 1.5rem;
+            width: 600px;
+            max-width: 90vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .json-modal textarea {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            color: #ccc;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            padding: 1rem;
+            height: 400px;
+            resize: vertical;
+            outline: none;
+        }
+        .json-modal textarea:focus {
+            border-color: #555;
+        }
+
         /* ANIMATIONS */
         @keyframes fadeUp {
             from {
@@ -502,7 +540,10 @@
             </label>
         </div>
 
-        <button class="generate-btn" id="generateBtn">Generate</button>
+        <div style="display: flex; gap: 0.75rem; align-items: center;">
+            <button class="generate-btn" id="generateBtn">Generate</button>
+            <button class="download-btn" id="loadJsonBtnTop" style="padding: 0.75rem 1rem;">Load JSON</button>
+        </div>
     </div>
 
     <div class="viewport-section">
@@ -514,6 +555,16 @@
         <div class="download-bar" id="downloadBar">
             <button class="download-btn" id="downloadSvg">Download SVG</button>
             <button class="download-btn" id="downloadPng">Download PNG</button>
+            <button class="download-btn" id="loadJsonBtn">Load JSON</button>
+        </div>
+        <div class="json-modal" id="jsonModal">
+            <div class="json-modal-inner">
+                <textarea id="jsonInput" placeholder="Paste scene graph JSON here..." spellcheck="false"></textarea>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                    <button class="download-btn" id="jsonCancel">Cancel</button>
+                    <button class="generate-btn" id="jsonRender" style="font-size: 0.65rem; padding: 0.75rem 1.5rem;">Render</button>
+                </div>
+            </div>
         </div>
         <div class="source-indicator" id="sourceIndicator"></div>
     </div>
@@ -1734,6 +1785,35 @@ document.getElementById('downloadPng').addEventListener('click', () => {
         }, 'image/png');
     };
     img.src = url;
+});
+
+// Load JSON modal
+const jsonModal = document.getElementById('jsonModal');
+function openJsonModal() {
+    jsonModal.classList.add('visible');
+    document.getElementById('jsonInput').focus();
+}
+document.getElementById('loadJsonBtn').addEventListener('click', openJsonModal);
+document.getElementById('loadJsonBtnTop').addEventListener('click', openJsonModal);
+document.getElementById('jsonCancel').addEventListener('click', () => {
+    jsonModal.classList.remove('visible');
+});
+jsonModal.addEventListener('click', (e) => {
+    if (e.target === jsonModal) jsonModal.classList.remove('visible');
+});
+document.getElementById('jsonRender').addEventListener('click', () => {
+    const input = document.getElementById('jsonInput').value.trim();
+    if (!input) return;
+    try {
+        const sg = JSON.parse(input);
+        renderToViewport(sg, currentStyle);
+        jsonModal.classList.remove('visible');
+        document.getElementById('errorText').style.display = 'none';
+        document.getElementById('sourceIndicator').textContent = 'loaded from JSON';
+        document.getElementById('sourceIndicator').classList.add('visible');
+    } catch (err) {
+        alert('Invalid JSON: ' + err.message);
+    }
 });
 
 // ---- Auto-render test fixture on load (for development) ----
